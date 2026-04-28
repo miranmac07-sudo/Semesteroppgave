@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Motstanderen — Norge 1940–1945</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#f8fafc;
+      --bg2:#eef2ff;
+      --surface:#ffffff;
+      --panel:#f1f5f9;
+      --text:#0f172a;
+      --text2:#334155;
+      --text3:#64748b;
+      --border:#cbd5e1;
+      --border2:#94a3b8;
+      --accent:#0f766e;
+      --accent-soft:#d1fae5;
+      --primary:#2563eb;
+      --primary-soft:#e0f2fe;
+      --warn:#b91c1c;
+      --red:#b91c1c;
+      --red-light:#fee2e2;
+      --blue:#1d4ed8;
+      --blue-light:#e0f2fe;
+      --green:#047857;
+      --green-light:#d1fae5;
+      --amber:#a16207;
+      --amber-light:#fef3c7;
+      --purple:#7c3aed;
+      --purple-light:#ede9fe;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;}
+    .app{max-width:760px;margin:0 auto;padding:1rem;background:var(--bg);}
+
+    /* ── HEADER ── */
+    .header{padding:1.25rem 1.5rem 1rem;background:var(--surface);position:sticky;top:0;z-index:200;border:1px solid var(--border);border-radius:18px;box-shadow:0 16px 40px rgba(15,23,42,0.08);}
+    .header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;}
+    .header-titles{}
+    .header-eyebrow{font-size:0.85rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:0.75rem;}
+    .header h1{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;line-height:1.05;margin-bottom:0.35rem;}
+    .header h1 span{color:var(--accent);}
+    .header-sub{font-size:0.95rem;color:var(--text3);}
+    .prog-mini{display:flex;flex-direction:column;align-items:flex-end;gap:0.5rem;flex-shrink:0;min-width:140px;}
+    .prog-mini-text{font-size:0.85rem;color:var(--text3);white-space:nowrap;}
+    .prog-mini-track{width:100%;height:8px;background:var(--panel);border-radius:999px;overflow:hidden;}
+    .prog-mini-fill{height:100%;background:var(--accent);border-radius:999px;transition:width .4s ease;}
+
+    /* ── SCREENS ── */
+    .screen{display:none;}
+    .screen.active{display:block;}
+
+    /* ── MAP SCREEN ── */
+    #map-screen{padding:1rem;}
+    .map-intro{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:0.875rem;padding:0.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;border-left:3px solid var(--accent);}
+
+    .map-outer{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--border);background:var(--panel);}
+    .map-img-wrap{position:relative;display:block;}
+    .map-img-wrap img{width:100%;display:block;opacity:1;}
+
+    /* PIN */
+    .map-pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;z-index:10;transition:transform .18s ease,filter .18s ease;display:flex;align-items:center;justify-content:center;}
+    .map-pin:hover{transform:translate(-50%,-100%) scale(1.08);}
+    .pin-body{position:relative;display:flex;flex-direction:column;align-items:center;gap:0.3rem;}
+    .pin-dot{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid #fff;box-shadow:0 8px 20px rgba(15,23,42,0.18);position:relative;flex-shrink:0;background:#334155;color:#fff;}
+    .pin-dot .ck{display:none;position:absolute;top:-5px;right:-5px;width:15px;height:15px;background:var(--accent);border-radius:999px;border:2px solid #fff;font-size:9px;color:#fff;align-items:center;justify-content:center;font-weight:700;display:flex;}
+    .pin-lbl{position:absolute;top:-34px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.96);border:1px solid var(--border);border-radius:999px;padding:0.35rem 0.75rem;font-size:0.78rem;font-weight:700;white-space:nowrap;box-shadow:0 8px 20px rgba(15,23,42,0.12);color:var(--text2);}
+    .pin-tail{display:none;}
+    .map-pin.visited .pin-dot{filter:brightness(0.92) saturate(1.1);}
+    .map-pin.visited .ck{display:flex;}
+    .map-pin.visited .pin-lbl{color:var(--text3);}
+
+    /* LEGEND */
+    .map-legend{padding:0.6rem 1rem;background:var(--bg2);border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px 14px;}
+    .leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+    .leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+
+    /* ── BACK NAV ── */
+    .back-row{padding:0.75rem 1rem;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:0.75rem;}
+    .back-btn{background:none;border:1px solid var(--border2);border-radius:6px;padding:5px 12px 5px 8px;font-family:'Source Sans 3',sans-serif;font-size:13px;color:var(--text2);cursor:pointer;transition:background .12s;display:inline-flex;align-items:center;gap:4px;}
+    .back-btn:hover{background:var(--bg2);}
+    .breadcrumb{font-size:12px;color:var(--text3);}
+    .breadcrumb strong{color:var(--text2);}
+
+    /* ── CITY SCREEN ── */
+    .city-hero{padding:1.25rem 1rem 1rem;border-bottom:1px solid var(--border);}
+    .city-eyebrow{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px;}
+    .city-hero h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:0.625rem;}
+    .city-intro-box{font-size:13.5px;color:var(--text2);line-height:1.65;padding:0.875rem 1rem;background:var(--bg2);border-radius:8px;border-left:3px solid var(--accent);}
+
+    .events-wrap{padding:1rem;}
+    .section-lbl{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:0.75rem;}
+
+    .event-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:1rem 1.125rem;margin-bottom:0.75rem;cursor:pointer;transition:border-color .15s,box-shadow .15s,background .15s;}
+    .event-card:hover{border-color:var(--border2);box-shadow:0 3px 14px rgba(0,0,0,0.08);background:#fff;}
+    .event-card.done{border-color:rgba(42,122,42,0.3);background:rgba(42,122,42,0.03);}
+    .event-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+    .done-tag{font-size:11px;color:#2a7a2a;font-weight:600;display:flex;align-items:center;gap:3px;}
+    .badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:20px;}
+    .badge.kilde{background:var(--blue-light);color:var(--blue);}
+    .badge.valg{background:var(--amber-light);color:var(--amber);}
+    .badge.konsekvens{background:var(--green-light);color:var(--green);}
+    .badge.historisk{background:var(--purple-light);color:var(--purple);}
+    .event-year{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;}
+    .event-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.35;}
+    .event-desc{font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:6px;}
+    .event-cta{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:4px;}
+
+    /* ── CHOICE SCREEN ── */
+    .choice-wrap{padding:1.1rem;}
+    .scene-label{font-size:0.78rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;}
+    .scene-year-tag{display:inline-block;font-size:0.92rem;color:var(--text3);margin-bottom:0.75rem;}
+    .scene-box{font-family:'Playfair Display',serif;font-size:1rem;line-height:1.75;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:1.1rem 1.2rem;margin-bottom:1.25rem;}
+    .choice-prompt{font-size:0.95rem;color:var(--text3);margin-bottom:1rem;font-style:italic;}
+    .choice-options{display:grid;gap:0.9rem;}
+    .choice-btn{width:100%;text-align:left;padding:1rem;background:var(--surface);border:1px solid var(--border);border-radius:18px;cursor:pointer;font-family:'Source Sans 3',sans-serif;color:var(--text);transition:background .18s ease,border-color .18s ease,transform .18s ease,box-shadow .18s ease;box-shadow:0 4px 18px rgba(15,23,42,0.04);}
+    .choice-btn:hover{border-color:var(--accent);background:var(--panel);transform:translateY(-2px);}
+    .choice-btn:active{transform:translateY(0);}
+    .btn-label{font-size:1rem;font-weight:700;display:block;margin-bottom:0.35rem;}
+    .btn-hist{font-size:0.92rem;color:var(--text3);line-height:1.6;}
+
+    /* CONSEQUENCE */
+    .consequence{border-radius:18px;padding:1.25rem 1.35rem;margin-top:1.25rem;border:1px solid;animation:fadeUp .35s ease;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+    .consequence.motstander{background:var(--accent-soft);border-color:var(--accent);}
+    .consequence.kollaboratør{background:var(--red-light);border-color:var(--red);}
+    .consequence.nøytral{background:var(--amber-light);border-color:var(--amber);}
+    .con-role{font-size:0.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:0.65rem;}
+    .consequence.motstander .con-role{color:var(--accent);}
+    .consequence.kollaboratør .con-role{color:var(--red);}
+    .consequence.nøytral .con-role{color:var(--amber);}
+    .con-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:0.65rem;}
+    .con-text{font-size:0.95rem;color:var(--text2);line-height:1.75;margin-bottom:0.9rem;}
+    .con-fag{font-size:0.94rem;color:var(--text3);font-style:italic;padding-top:0.85rem;border-top:1px solid rgba(15,23,42,0.08);}
+    .finish-btn{display:inline-flex;margin:1.25rem auto 0;padding:0.95rem 2rem;font-family:'Source Sans 3',sans-serif;font-size:0.95rem;font-weight:700;background:var(--primary);color:#fff;border:none;border-radius:999px;cursor:pointer;transition:background .18s ease,opacity .18s ease;}
+    .finish-btn:hover{background:#1d4ed8;}
+
+    /* ── SUMMARY ── */
+    .summary-hero{padding:2rem 1rem 1.5rem;border-bottom:1px solid var(--border);text-align:center;}
+    .sum-eyebrow{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:0.5rem;}
+    .summary-hero h2{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;margin-bottom:0.5rem;}
+    .sum-tagline{font-size:13.5px;color:var(--text2);line-height:1.65;max-width:440px;margin:0 auto;}
+
+    .id-card{margin:1.25rem 1rem 0;padding:1.25rem 1.25rem;border-radius:14px;border:2px solid;text-align:center;}
+    .id-card.motstander{background:var(--green-light);border-color:#1a6040;}
+    .id-card.kollaboratør{background:var(--red-light);border-color:var(--red);}
+    .id-card.nøytral{background:var(--amber-light);border-color:var(--amber);}
+    .id-card.blandet{background:var(--purple-light);border-color:#5a3a88;}
+    .id-icon{font-size:40px;margin-bottom:0.5rem;}
+    .id-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:0.5rem;}
+    .id-card.motstander .id-title{color:#1a6040;}
+    .id-card.kollaboratør .id-title{color:var(--red);}
+    .id-card.nøytral .id-title{color:var(--amber);}
+    .id-card.blandet .id-title{color:#3a2060;}
+    .id-desc{font-size:13.5px;color:var(--text2);line-height:1.65;}
+
+    .sum-section{padding:1.25rem 1rem 0;}
+    .sum-section-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.875rem;}
+
+    .role-bars{display:flex;flex-direction:column;gap:10px;}
+    .role-row{display:flex;align-items:center;gap:10px;}
+    .role-name{font-size:13px;font-weight:500;width:120px;flex-shrink:0;}
+    .role-track{flex:1;height:20px;background:rgba(0,0,0,0.07);border-radius:5px;overflow:hidden;}
+    .role-bar{height:100%;border-radius:5px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:#fff;min-width:28px;transition:width .9s ease;}
+    .role-bar.motstander{background:#1a6040;}
+    .role-bar.kollaboratør{background:#8b2020;}
+    .role-bar.nøytral{background:#8a6020;}
+    .role-count{font-size:13px;color:var(--text3);width:28px;text-align:right;flex-shrink:0;}
+
+    .log-city{margin-bottom:1.25rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+    .log-city-name{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:0.625rem 1rem;background:var(--bg2);border-bottom:1px solid var(--border);}
+    .log-entry{display:flex;gap:10px;align-items:flex-start;padding:0.75rem 1rem;border-bottom:1px solid var(--border);}
+    .log-entry:last-child{border-bottom:none;}
+    .log-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+    .log-dot.motstander{background:#1a6040;}
+    .log-dot.kollaboratør{background:#8b2020;}
+    .log-dot.nøytral{background:#8a6020;}
+    .log-content{flex:1;}
+    .log-event{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px;}
+    .log-choice{font-size:12px;color:var(--text2);font-style:italic;}
+    .log-tag{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+    .log-tag.motstander{color:#1a6040;}
+    .log-tag.kollaboratør{color:#8b2020;}
+    .log-tag.nøytral{color:#8a6020;}
+
+    .reflection{margin:1.25rem 1rem 0;padding:1.25rem 1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:16px;border-left:4px solid var(--primary);}
+    .reflection p{font-size:0.98rem;color:var(--text3);line-height:1.8;margin-bottom:0.9rem;}
+    .reflection p:last-child{margin-bottom:0;}
+    .restart-btn{display:inline-flex;margin:1.5rem auto;padding:0.95rem 2rem;font-family:'Source Sans 3',sans-serif;font-size:0.95rem;font-weight:700;background:var(--text);color:var(--bg);border:none;border-radius:999px;cursor:pointer;transition:opacity .18s ease;}
+    .restart-btn:hover{opacity:.85;}
+
+    .footer{padding:1rem 1.5rem;border-top:1px solid var(--border);background:var(--bg2);font-size:11px;color:var(--text3);text-align:center;line-height:1.6;}
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div class="header-titles">
+        <div class="header-eyebrow">Semesteroppgave · Historie VG3</div>
+        <h1>Motstand<span>eren</span></h1>
+        <div class="header-sub">Norge under andre verdenskrig 1940–1945</div>
+      </div>
+      <div class="prog-mini">
+        <span class="prog-mini-text" id="prog-text">0 / 13 fullført</span>
+        <div class="prog-mini-track"><div class="prog-mini-fill" id="prog-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MAP SCREEN ══ -->
+  <div id="map-screen" class="screen active">
+    <div style="padding:1rem 1rem 0.75rem">
+      <div class="map-intro">Trykk på et sted for å utforske historiske hendelser og ta valg som virkelige nordmenn sto overfor. Grønn hake = alle valg fullført.</div>
+    </div>
+    <div style="padding:0 1rem 1rem">
+      <div class="map-outer">
+        <div class="map-img-wrap">
+          <img src="data:image/png;base64,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" alt="Kart over Norge" draggable="false">
+
+      
+          <div class="map-pin" id="pin-kirkenes" style="left:95%;top:23%" onclick="showCity('kirkenes')">
+            <div class="pin-body"><div class="pin-dot" style="background:#3a2060">❄</div><div class="pin-lbl">Kirkenes</div><div class="pin-tail"></div></div>
+          </div>
+
+
+          <div class="map-pin" id="pin-narvik" style="left:57%;top:34%" onclick="showCity('narvik')">
+            <div class="pin-body"><div class="pin-dot" style="background:#1a3a5c">⚔</div><div class="pin-lbl">Narvik</div><div class="pin-tail"></div></div>
+          </div>
+
+         
+          <div class="map-pin" id="pin-altmark" style="left:6%;top:99%" onclick="showCity('altmark')">
+            <div class="pin-body"><div class="pin-dot" style="background:#1a3a5c">⚓</div><div class="pin-lbl">Jøssingfjord</div><div class="pin-tail"></div></div>
+          </div>
+
+  
+          <div class="map-pin" id="pin-trondheim" style="left:27%;top:68%" onclick="showCity('trondheim')">
+            <div class="pin-body"><div class="pin-dot" style="background:#1a4030">⛪</div><div class="pin-lbl">Trondheim</div><div class="pin-tail"></div></div>
+          </div>
+
+       
+          <div class="map-pin" id="pin-bergen" style="left:5%;top:90%" onclick="showCity('bergen')">
+            <div class="pin-body"><div class="pin-dot" style="background:#6b4010">⚓</div><div class="pin-lbl">Bergen</div><div class="pin-tail"></div></div>
+          </div>
+
+          
+          <div class="map-pin" id="pin-rjukan" style="left:17%;top:91%" onclick="showCity('rjukan')">
+            <div class="pin-body"><div class="pin-dot" style="background:#5a2a00">💣</div><div class="pin-lbl">Rjukan</div><div class="pin-tail"></div></div>
+          </div>
+
+
+          <div class="map-pin" id="pin-hamar" style="left:27%;top:84%" onclick="showCity('hamar')">
+            <div class="pin-body"><div class="pin-dot" style="background:#8b2020">👑</div><div class="pin-lbl">Hamar/Elverum</div><div class="pin-tail"></div></div>
+          </div>
+
+
+          <div class="map-pin" id="pin-oscarsborg" style="left:32%;top:94%" onclick="showCity('oscarsborg')">
+            <div class="pin-body"><div class="pin-dot" style="background:#1a3a5c">🏰</div><div class="pin-lbl">Oscarsborg</div><div class="pin-tail"></div></div>
+          </div>
+
+          <div class="map-pin" id="pin-oslo" style="left:27%;top:91%" onclick="showCity('oslo')">
+            <div class="pin-body"><div class="pin-dot" style="background:#8b2020">🏙</div><div class="pin-lbl">Oslo</div><div class="pin-tail"></div></div>
+          </div>
+
+
+          <div class="map-pin" id="pin-donau" style="left:73%;top:88%" onclick="showCity('donau')">
+            <div class="pin-body"><div class="pin-dot" style="background:#4a1a1a">🚢</div><div class="pin-lbl">SS Donau</div><div class="pin-tail"></div></div>
+          </div>
+-->
+          <div class="map-pin" id="pin-london" style="left:89%;top:88%" onclick="showCity('london')">
+            <div class="pin-body"><div class="pin-dot" style="background:#003366">✈</div><div class="pin-lbl">London / Eksilreg.</div><div class="pin-tail"></div></div>
+          </div>
+
+
+          <div class="map-pin" id="pin-milorg" style="left:60%;top:88%" onclick="showCity('milorg')">
+            <div class="pin-body"><div class="pin-dot" style="background:#2a5a2a">🕵</div><div class="pin-lbl">Milorg</div><div class="pin-tail"></div></div>
+          </div>
+
+        </div>
+        <div class="map-legend">
+          <div class="leg-item"><div class="leg-dot" style="background:#8b2020"></div>Oslo</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#1a3a5c"></div>Sjø/militær</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#1a4030"></div>Sivil motstand</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#5a2a00"></div>Sabotasje</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#003366"></div>Eksilregjering</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#2a5a2a"></div>Milorg</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CITY SCREEN ══ -->
+  <div id="city-screen" class="screen">
+    <div class="back-row">
+      <button class="back-btn" onclick="showMap()">← Kart</button>
+      <span class="breadcrumb">→ <strong id="bc-city"></strong></span>
+    </div>
+    <div class="city-hero">
+      <div class="city-eyebrow" id="city-eyebrow"></div>
+      <h2 id="city-name"></h2>
+      <div class="city-intro-box" id="city-intro"></div>
+    </div>
+    <div class="events-wrap">
+      <div class="section-lbl">Hendelser — trykk for å ta et historisk valg</div>
+      <div id="events-list"></div>
+    </div>
+  </div>
+
+  <!-- ══ CHOICE SCREEN ══ -->
+  <div id="choice-screen" class="screen">
+    <div class="back-row">
+      <button class="back-btn" onclick="backToCity()">← Tilbake</button>
+      <span class="breadcrumb">→ <strong id="bc-choice"></strong></span>
+    </div>
+    <div class="choice-wrap">
+      <div class="scene-label">Historisk dilemma</div>
+      <div class="scene-year-tag" id="scene-year"></div>
+      <div class="scene-box" id="choice-scene"></div>
+      <div class="choice-prompt">Hva gjør du? Velg ett alternativ:</div>
+      <div class="choice-options" id="choice-options"></div>
+      <div id="consequence-area"></div>
+    </div>
+  </div>
+
+  <!-- ══ SUMMARY SCREEN ══ -->
+  <div id="summary-screen" class="screen">
+    <div class="summary-hero">
+      <div class="sum-eyebrow">8. mai 1945 — Frigjøringsdagen</div>
+      <h2>Krigen er over. Hvem var du?</h2>
+      <p class="sum-tagline">Her er en full oversikt over alle valgene du tok under okkupasjonen — og hva de forteller om deg som historisk aktør.</p>
+    </div>
+    <div id="id-card-wrap"></div>
+    <div class="sum-section">
+      <div class="sum-section-title">Fordeling av dine valg</div>
+      <div class="role-bars" id="role-bars"></div>
+    </div>
+    <div class="sum-section">
+      <div class="sum-section-title">Alle valgene dine — sted for sted</div>
+      <div id="log-wrap"></div>
+    </div>
+    <div class="reflection" id="reflection"></div>
+    <div style="text-align:center">
+      <button class="restart-btn" onclick="restartGame()">Spill på nytt med nye valg</button>
+    </div>
+  </div>
+
+  <div class="footer">Semesteroppgave · Historie VG3 · Kildegrunnlag: Norgeshistorie.no, HL-senteret, Riksarkivet, NRK Historie</div>
+</div><!-- .app -->
+
+<script>
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+const cities = {
+  kirkenes: {
+    name:'Kirkenes', eyebrow:'Den mest bombede norske by', color:'#3a2060',
+    intro:'Kirkenes ble bombet over 320 ganger — mer enn noen annen norsk by. Sovjet-grensen lå like ved. I 1944 gjennomførte tyske styrker den brente jords taktikk og tvangsevakuerte hele Finnmarks befolkning.',
+    events:[
+      {year:'1941–1944', title:'Under bomberegnet', desc:'Sivilbefolkningen søker ly i gruver og fjellhaller. Livet leves i konstant frykt for neste angrep.', badge:'kilde', cid:'kirkenes1'},
+      {year:'Oktober 1944', title:'Tvangsevakuering og brenning', desc:'Tyske styrker brenner systematisk ned all bebyggelse og tvinger over 10 000 sivile sørover.', badge:'konsekvens', cid:'kirkenes2'}
+    ]
+  },
+  narvik: {
+    name:'Narvik', eyebrow:'Slagmarken 1940', color:'#1a3a5c',
+    intro:'Narvik var strategisk avgjørende for jernmalm fra svenske gruver. Kampene om Narvik i april–juni 1940 var de første gangene allierte landstyrker beseiret tyske styrker i krigen.',
+    events:[
+      {year:'10. april 1940', title:'Sjøslaget om Narvik', desc:'Norske og britiske marinestyrker angriper tyske krigsskip i to store slag i Ofotfjorden.', badge:'kilde', cid:'narvik1'},
+      {year:'28. mai 1940', title:'Gjenerobringen av Narvik', desc:'General Fleischer leder norske og allierte styrker til byens gjenerobring — den eneste norske landseieren i 1940.', badge:'valg', cid:'narvik2'}
+    ]
+  },
+  altmark: {
+    name:'Jøssingfjord — Altmarksaken', eyebrow:'Februar 1940 — forspillet til invasjonen', color:'#1a3a5c',
+    intro:'I februar 1940 gikk det britiske marinefartøyet HMS Cossack inn i norsk territorialfarvann ved Jøssingfjord og frigjorde 299 britiske fanger fra det tyske skipet Altmark. Hendelsen viste Norges umulige nøytralitet — og ble brukt av Hitler som begrunnelse for å invadere Norge.',
+    events:[
+      {year:'16. februar 1940', title:'Altmarksaken', desc:'HMS Cossack bryter norsk nøytralitet og frigjør britiske fanger fra Altmark. Norge protesterer — men er maktesløse.', badge:'historisk', cid:'altmark1'}
+    ]
+  },
+  trondheim: {
+    name:'Trondheim', eyebrow:'Motstandsbyen', color:'#1a4030',
+    intro:'Trondheim ble tidlig senter for sivil og militær motstand. Losen-organisasjonen hjalp flyktninger over til Sverige, og illegale aviser ble trykt og distribuert på tross av dødstraff.',
+    events:[
+      {year:'1941–1945', title:'Den illegale pressen', desc:'Over 300 illegale aviser informerer befolkningen om krigens sanne gang. Distribusjon kan gi dødsstraff.', badge:'valg', cid:'trondheim1'},
+      {year:'1942', title:'Lærernes massenegtelse', desc:'Over 12 000 norske lærere nekter å undertegne NS-lojalitetserklæringer. Over 1 000 arresteres.', badge:'konsekvens', cid:'trondheim2'}
+    ]
+  },
+  bergen: {
+    name:'Bergen', eyebrow:'Havnebyen og fluktrutene', color:'#6b4010',
+    intro:'Bergen var Norges nest største by og viktig havn. Fluktnettverk hjalp jøder og motstandsfolk til Sverige eller Storbritannia. Den norske handelsflåten var avgjørende for de allierte forsyningslinjene.',
+    events:[
+      {year:'1940–1945', title:'Flukt over grensen', desc:'Tusenvis krysser til Sverige for å unnslippe forfølgelse eller melde seg til de allierte. Ruter holdes hemmelige.', badge:'valg', cid:'bergen1'}
+    ]
+  },
+  rjukan: {
+    name:'Rjukan — Vemork', eyebrow:'Tungtvannssabotasjen', color:'#5a2a00',
+    intro:'Vemork kraftstasjon var verdens eneste fabrikk som produserte tungt vann i mengder som kunne brukes til atomvåpenforskning. Sabotasjeaksjonen i 1943 regnes som en av krigens viktigste motstandsoperasjoner. Sabotørene kalles "De tolv fra Telemark".',
+    events:[
+      {year:'27. februar 1943', title:'Operasjon Gunnerside', desc:'Tolv norske fallskjermjegere saboterer tungtvannsanlegget uten tap på noen side.', badge:'valg', cid:'rjukan1'},
+      {year:'20. februar 1944', title:'Fergen Hydro senkes', desc:'For å hindre transport av tungt vann til Tyskland sprenger motstandsfolk fergen Hydro. 18 sivile omkommer.', badge:'konsekvens', cid:'rjukan2'}
+    ]
+  },
+  hamar: {
+    name:'Hamar og Elverum', eyebrow:'Kongens nei og Elverumsfullmakten', color:'#8b2020',
+    intro:'9. april 1940 flyktet Kongen og regjeringen nordover. På Elverum ga Stortinget regjeringen fullmakt til å styre landet i krig — Elverumsfullmakten. Kong Haakon VII mottok Hitlers ultimatum og svarte nei — et av de viktigste øyeblikkene i norsk historie.',
+    events:[
+      {year:'9.–10. april 1940', title:'Elverumsfullmakten', desc:'Stortinget samles på Elverum og gir regjeringen Nygaardsvold fullmakt til å ta alle nødvendige beslutninger. En demokratisk katastrofeplan.', badge:'historisk', cid:'hamar1'},
+      {year:'10. april 1940', title:'Kongens nei', desc:'Kong Haakon VII avviser det tyske ultimatumet om å godkjenne okkupasjonen. "Jeg kan ikke godta dette." Et historisk nei.', badge:'valg', cid:'hamar2'}
+    ]
+  },
+  oscarsborg: {
+    name:'Oscarsborg festning', eyebrow:'Valget som reddet Kongen', color:'#1a3a5c',
+    intro:'Oscarsborg festning i Oslofjorden er stedet der den tyske invasjonen ble stoppet. Kommandant Birger Eriksen beordret å åpne ild mot den tyske krysseren Blücher — mot protokollen. Avgjørelsen reddet trolig kongefamilien og regjeringen fra å bli fanget.',
+    events:[
+      {year:'9. april 1940, kl. 04:21', title:'Blücher senkes', desc:'Eriksen gir ordren "For Norges skyld". Blücher synker med over 800 mann og forsinker invasjonen av Oslo med kritiske timer.', badge:'kilde', cid:'oscarsborg1'}
+    ]
+  },
+  oslo: {
+    name:'Oslo', eyebrow:'Okkupasjonens hjerte', color:'#8b2020',
+    intro:'Oslo ble okkupert 9. april 1940 nesten uten motstand. Nasjonal Samling under Quisling forsøkte å gripe makten, men Reichskommissar Terboven tok over. Oslo ble senter for det nazistiske styret og for landssvikoppgjøret etter krigen.',
+    events:[
+      {year:'9. april 1940', title:'Okkupasjonen begynner', desc:'Tyske tropper marsjerer inn i Oslo. Kongefamilien og regjeringen flykter nordover.', badge:'kilde', cid:'oslo1'},
+      {year:'November 1942', title:'Deportasjon av jøder', desc:'Over 770 norske jøder deporteres med SS Gotenland til Auschwitz. Norsk politi deltok aktivt i arrestasjonene.', badge:'valg', cid:'oslo2'}
+    ]
+  },
+  donau: {
+    name:'SS Donau — Oslofjorden', eyebrow:'26. november 1942', color:'#4a1a1a',
+    intro:'SS Donau fraktet 26. november 1942 529 norske jøder — deriblant 162 barn — fra Oslo havn til Auschwitz-Birkenau. Det var den største enkeltdeportasjonen fra Norge. Av de 529 overlevde kun ni.',
+    events:[
+      {year:'26. november 1942', title:'Avgangen fra Oslo havn', desc:'Menn, kvinner og barn lastes om bord. Norsk Statspolitiet gjennomfører arrestasjonene under tysk kommando.', badge:'kilde', cid:'donau1'},
+      {year:'Høsten 1942', title:'De som visste og de som handlet', desc:'Noen nordmenn hjalp jødiske familier til Sverige. Andre visste og sa ingenting. Et mindretall anmeldte dem aktivt.', badge:'valg', cid:'donau2'}
+    ]
+  },
+  london: {
+    name:'London — Eksilregjeringen', eyebrow:'Norges stemme i verden', color:'#003366',
+    intro:'Da Norge falt, fortsatte kong Haakon VII og regjeringen Nygaardsvold krigen fra London. Eksilregjeringen representerte Norges suverenitet, koordinerte motstandsarbeidet og sikret at Norge kom ut som seirende alliert i 1945. Den norske handelsflåten — "den hemmelige krigsflåten" — var avgjørende for de allierte.',
+    events:[
+      {year:'1940–1945', title:'Regjeringen i eksil', desc:'Norges lovlige regjering styrer landet i krig fra London. Radioen "London-radio" holder motet oppe hjemme.', badge:'historisk', cid:'london1'},
+      {year:'1940–1945', title:'Den norske handelsflåten', desc:'"Nortraship" — Norges handelsskipsflåte — stilles til de alliertes disposisjon. 30 000 norske sjømenn risikerer livet på Atlanterhavet.', badge:'konsekvens', cid:'london2'}
+    ]
+  },
+  milorg: {
+    name:'Milorg — Den militære motstand', eyebrow:'Hjemmefrontens hemmelige hær', color:'#2a5a2a',
+    intro:'Milorg (Militærorganisasjonen) var den hemmelige norske motstandsorganisasjonen som opererte under hele okkupasjonen. Fra spredte grupper i 1941 vokste Milorg til 40 000 mann ved krigens slutt — klar til å ta over den offentlige ordenen ved frigjøringen.',
+    events:[
+      {year:'1941–1945', title:'Bli med i Milorg?', desc:'Milorg koordinerte sabotasje, etterretning og forberedte en fremtidig frigjøring. Oppdagelse betød tortur og henrettelse.', badge:'valg', cid:'milorg1'},
+      {year:'8. mai 1945', title:'Frigjøringen', desc:'Milorg trer frem og overtar den offentlige ordenen 8. mai 1945. 40 000 mann — klare etter fem år i skjul.', badge:'konsekvens', cid:'milorg2'}
+    ]
+  }
+};
+
+const choices = {
+  kirkenes1:{
+    year:'1943', scene:'Du sitter i gruvegangen med over 200 sivile under et nytt bomberaid. Et barn er skadet og trenger medisinsk hjelp. Å gå ut er livsfarlig — bombene faller fortsatt.',
+    options:[
+      {label:'Gå ut og hent hjelp', role:'motstander', hist:'Sivilbefolkningen i Kirkenes viste ekstraordinært mot under de over 320 bombardementene.', consequence:'Du løper under bomberegnet. Barnet overlever med ordentlig behandling. Mot er ikke fraværet av frykt, men handlingen til tross for den.'},
+      {label:'Vent til bombingen er over', role:'nøytral', hist:'De fleste søkte ly og ventet — et rasjonelt valg under ekstreme forhold.', consequence:'Barnet overlever med improvisert behandling inne i gruvegangen. Pragmatisk og trygt. Historisk empati betyr å forstå begge valgene.'}
+    ]
+  },
+  kirkenes2:{
+    year:'Oktober 1944', scene:'Tyske soldater gir deg én time til å forlate hjemmet — de skal brenne det. Du kan følge evakueringsordren sørover, eller flykte til fjells og gjemme deg.',
+    options:[
+      {label:'Gjem deg i fjellet — nekt evakuering', role:'motstander', hist:'Over 25 000 finnmarkinger gjemte seg for å unngå tvangsevakuering.', consequence:'En hard vinter i fjellhytte. Men du er til stede når Kirkenes frigjøres. Du blir et historisk vitne — og historien trenger øyenvitner.'},
+      {label:'Følg evakueringsordren sørover', role:'nøytral', hist:'Majoriteten fulgte ordren og ble fraktet til midlertidig bolig i Sør-Norge.', consequence:'Du overlever trygt, men hjemstedet er ruiner når du vender tilbake. "Den brente jords taktikk" etterlot enorme gjenoppbyggingsbehov.'}
+    ]
+  },
+  narvik1:{
+    year:'10. april 1940', scene:'Du er norsk marineoffiser i Ofotfjorden. Tyske krigsskip ankret opp natten. Ordrene fra overordnede er uklare — det er kaos. Angriper du nå, eller venter du?',
+    options:[
+      {label:'Angrip umiddelbart', role:'motstander', hist:'Norske torpedobåter angrep tyske kryssere og sank to krigsskip.', consequence:'Et djervt angrep. Du mister egne fartøy, men setter i gang prosessen som leder til alliert seier i Narvik.'},
+      {label:'Vent og koordiner med britene', role:'nøytral', hist:'Samarbeid mellom norske og britiske styrker ble avgjørende.', consequence:'Det koordinerte angrepet lykkes bedre. Narvik gjenerobres — den første allierte landseieren i andre verdenskrig.'}
+    ]
+  },
+  narvik2:{
+    year:'Juni 1940', scene:'Narvik er gjenerobret — men Frankrike kollapser og britene vil evakuere. Uten alliert støtte er videre kamp håpløs. Hva gjør du som norsk offiser?',
+    options:[
+      {label:'Fortsett kampen i Norge alene', role:'motstander', hist:'Mange norske offiserer ønsket å kjempe videre.', consequence:'Uten forsyninger er militær seier umulig. Norge kapitulerer 10. juni. Men viljen til motstand inspirerer Hjemmefronten.'},
+      {label:'Evakuer til London og kjemp videre derfra', role:'nøytral', hist:'Kongefamilien, regjeringen og marinen fortsatte krigen fra London.', consequence:'Den norske marinen bidrar avgjørende til alliert seier. Freden kommer 8. mai 1945.'}
+    ]
+  },
+  altmark1:{
+    year:'16. februar 1940', scene:'Du er norsk marineofficer. Et britisk krigsskip bryter norsk territorialfarvann for å frigjøre britiske fanger fra det tyske skipet Altmark. Norge er nøytral. Hva gjør du?',
+    options:[
+      {label:'Protest formelt men grip ikke inn', role:'nøytral', hist:'Norge protesterte diplomatisk men hadde ikke makt til å stoppe britene.', consequence:'Norge fremstår som maktesløs. Hitler bruker hendelsen som argument for at Norge ikke kan forsvare sin nøytralitet — og planlegger invasjon.'},
+      {label:'Eskortér Altmark og hevd norsk nøytralitet', role:'motstander', hist:'Norsk nøytralitet var i praksis umulig å opprettholde mellom to krigførende stormakter.', consequence:'Britene ignorerer protesten. Hendelsen viser det samme: Norge er fanget mellom to giganter. Invasjonen kommer uansett 9. april.'}
+    ]
+  },
+  trondheim1:{
+    year:'1941', scene:'En motstandsmann gir deg 50 kopier av den illegale avisa "Friheten" og ber deg distribuere dem til naboer og kolleger. "Folk trenger sannheten." Straffen om du tas er døden.',
+    options:[
+      {label:'Distribuer avisene', role:'motstander', hist:'Over 300 illegale aviser ble trykt i Norge. Distribusjon var livsfarlig.', consequence:'Du sprer motstandsbudskapet. Folk som kjenner sannheten er vanskeligere å kontrollere. Informasjonskrigen er avgjørende.'},
+      {label:'Nekt — risikoen er for høy', role:'nøytral', hist:'De fleste nordmenn tok ikke slike sjanser, av fullt forståelige grunner.', consequence:'Du er trygg. Men propagandastriden svekkes lokalt. Andre tar risikoen for deg.'}
+    ]
+  },
+  trondheim2:{
+    year:'1942', scene:'NS-myndighetene krever at du som lærer undertegner en erklæring om å undervise NS-ideologi. Nektelse betyr trolig arrestasjon og tvangsarbeid.',
+    options:[
+      {label:'Nekt å undertegne', role:'motstander', hist:'Over 12 000 norske lærere nektet — den største sivile protestaksjonen under okkupasjonen.', consequence:'Du arresteres og sendes til tvangsarbeid i Kirkenes. Men masseprtotesten lykkes — nazifiseringen av skolen mislykkes.'},
+      {label:'Undertegn under press', role:'kollaboratør', hist:'Et mindretall lærere undertegnet under sterkt press.', consequence:'Du beholder jobben men kompromitterer integriteten. I landssvikoppgjøret etter krigen stilles du til ansvar.'}
+    ]
+  },
+  bergen1:{
+    year:'1942', scene:'En jødisk familie banker på døren din midt på natten. De trenger hjelp til å krysse til Sverige. De har hørt at du kjenner noen som kan hjelpe.',
+    options:[
+      {label:'Hjelp familien direkte til fluktruten', role:'motstander', hist:'Ca. 50 000 nordmenn flyktet til Sverige. Sivile hjelpere var avgjørende.', consequence:'En farlig natt gjennom skog og fjell. Familien når Sverige i sikkerhet. Du riskerte livet for fremmede.'},
+      {label:'Kontakt en organisert fluktgruppe', role:'nøytral', hist:'Profesjonelle fluktorganisasjoner som Losen reddet mange mer effektivt.', consequence:'Tryggere for alle — erfarne guider kjenner rutene. Et pragmatisk valg som likevel krever mot.'},
+      {label:'Si at du ikke kan hjelpe', role:'kollaboratør', hist:'Mange turte ikke hjelpe av frykt for represalier.', consequence:'Familien er sårbar og desperate. Historisk empati krever at vi forstår frykten — men konsekvensene var like reelle.'}
+    ]
+  },
+  rjukan1:{
+    year:'27. februar 1943', scene:'Du er blant "De tolv fra Telemark". Etter måneder i fjellene har dere nådd Vemork. Tungtvannsanlegget er foran dere. Sprengladningene er klare. Alt avhenger av dette øyeblikket.',
+    options:[
+      {label:'Gjennomfør sabotasjen', role:'motstander', hist:'"De tolv fra Telemark" fullførte aksjonen uten tap. Det tok over et år å gjenoppbygge produksjonen.', consequence:'Anlegget settes ut av drift. Den tyske atomforskningen forsinkes vesentlig. Churchill kalte det "en av krigens viktigste sabotasjeaksjoner".'},
+      {label:'Avbryt — for mange sivile i nærheten', role:'nøytral', hist:'Gruppen diskuterte grundig risikoen for sivile tap.', consequence:'Tungtvannseksport til Berlin fortsetter. Om det hadde endret krigens gang er et åpent historiespørsmål.'}
+    ]
+  },
+  rjukan2:{
+    year:'Februar 1944', scene:'Tyske styrker skal frakte gjenværende tungt vann med fergen Hydro over Tinnsjøen. Dere kan sprenge fergen — men 53 passasjerer er om bord, de fleste sivile.',
+    options:[
+      {label:'Spreng fergen', role:'motstander', hist:'18 sivile omkom da Hydro sank 20. februar 1944.', consequence:'Tungt vann når aldri Berlin. Men 18 uskyldige liv er tapt. Krigens moralske kjerne: hva er et rettferdig offer?'},
+      {label:'La fergen passere — ikke ofre sivile', role:'nøytral', hist:'Gruppen var internt delt i sin vurdering.', consequence:'Tungtvann ankommer tyske laboratorier. Debatten om konsekvensene pågår fremdeles blant historikere.'}
+    ]
+  },
+  hamar1:{
+    year:'9. april 1940, kveld', scene:'Du er stortingsrepresentant som nettopp har flyktet fra Oslo. Stortinget møtes på Elverum. Regjeringen ber om fullmakt til å styre landet alene under krig — uten å måtte rådspørre Stortinget. Skal du stemme ja?',
+    options:[
+      {label:'Stem ja til fullmakten', role:'motstander', hist:'Stortinget vedtok enstemmig Elverumsfullmakten 9. april 1940.', consequence:'Regjeringen kan nå handle raskt uten parlamentarisk prosess. Fullmakten blir grunnlaget for eksilregjeringen i London og Norges fortsatte motstand i fem år.'},
+      {label:'Stem nei — det er for mye makt til regjeringen', role:'nøytral', hist:'Det var ingen nei-stemmer historisk, men prinsippet var kontroversiell.', consequence:'Uten fullmakt ville regjeringens handlekraft i eksil vært svekket. Kausaliteten er tydelig: demokratiske strukturer kan også beskytte demokratiet i krise.'}
+    ]
+  },
+  hamar2:{
+    year:'10. april 1940', scene:'Du er Kong Haakon VII. Den tyske gesandten har overlevert Hitlers ultimatum: godkjenn okkupasjonen og gi Quisling regjeringsmakt — ellers fortsetter bombingen av norske byer. Regjeringen venter på ditt råd.',
+    options:[
+      {label:'"Jeg kan ikke godta dette" — si nei', role:'motstander', hist:'Kong Haakon sa faktisk nei — og hans råd ble avgjørende for regjeringens beslutning om å fortsette kampen.', consequence:'Norge fortsetter å kjempe. Kongefamilien flykter til Storbritannia. Det norske nei blir et symbol på motstand for hele den okkuperte verden.'},
+      {label:'Godta ultimatumet for å redde norske liv', role:'nøytral', hist:'Pragmatiske stemmer mente at motstand bare kostet unødige liv siden utfallet var gitt.', consequence:'Norge kapitulerer formelt. Det blir aldri klart om Quisling-styret hadde vart, eller om motstandsviljen uansett hadde brutt ut. Historien tar en annen vei.'}
+    ]
+  },
+  oscarsborg1:{
+    year:'9. april 1940, kl. 04:00', scene:'Du er kommandant Birger Eriksen på Oscarsborg. Et tungt tysk krigsskip nærmer seg gjennom mørket. Du har ikke fått klare ordrer. Åpner du ild?',
+    options:[
+      {label:'"For Norges skyld" — åpne ild', role:'motstander', hist:'Eriksen ga faktisk denne ordren. Blücher sank med ca. 800 mann.', consequence:'Avgjørelsen forsinket invasjonen av Oslo med kritiske timer — nok til at kongefamilien og regjeringen rakk å flykte. En enkelt persons valg endret historiens gang.'},
+      {label:'Vent på ordrer fra overordnede', role:'nøytral', hist:'Uten Eriksens ordre ville Blücher ha nådd Oslo havn rundt klokken 05.', consequence:'Kongefamilien og regjeringen ville trolig blitt fanget. Norges eksilregjering i London — og dermed den organiserte norske krigsmotstanden — hadde kanskje aldri eksistert.'}
+    ]
+  },
+  oslo1:{
+    year:'9. april 1940', scene:'Du er lærer i Oslo. Tyske soldater patruljerer gatene. Din nabo, NS-sympatisør, tilbyr deg å melde deg inn i Nasjonal Samling for å "beskytte din stilling".',
+    options:[
+      {label:'Meld deg inn i NS', role:'kollaboratør', hist:'Ca. 55 000 nordmenn meldte seg inn i NS under okkupasjonen.', consequence:'Du beholder stillingen men mister respekten til kolleger og elever. I landssvikoppgjøret etter krigen risikerer du tap av borgerrettigheter.'},
+      {label:'Nekt og bli med i hemmelig motstand', role:'motstander', hist:'Over 40 000 nordmenn deltok aktivt i Hjemmefronten.', consequence:'Du kopierer og distribuerer illegale aviser. Livsfarlig — men du bidrar aktivt til frigjøringen.'},
+      {label:'Hold deg nøytral og si ingenting', role:'nøytral', hist:'Majoriteten forsøkte å leve "normalt" under okkupasjonen.', consequence:'Du unngår fare, men stilles snart overfor enda vanskeligere valg. Passivitet er også et valg med historiske konsekvenser.'}
+    ]
+  },
+  oslo2:{
+    year:'November 1942', scene:'Du ser nabofamilien — jøder med to barn — hentes av norsk politi. Du kjenner til et fluktnettverk. Å handle er livsfarlig for deg og din familie.',
+    options:[
+      {label:'Varsle fluktnettverket og hjelp dem', role:'motstander', hist:'Ca. 1 000 norske jøder ble reddet med hjelp fra sivile nordmenn.', consequence:'Farlig — men familien når Sverige trygt. Historien husker dem som handlet, ikke dem som så bort.'},
+      {label:'Gjør ingenting av frykt', role:'nøytral', hist:'Mange nordmenn visste om deportasjonene men forholdt seg passive.', consequence:'Familien deporteres til Auschwitz. Av de 529 deporterte overlevde kun ni. Spørsmålet om passivt medansvar forfølger norsk historiedebatt.'},
+      {label:'Rapporter fluktnettverket', role:'kollaboratør', hist:'Et mindretall nordmenn anmeldte aktivt jøder til okkupantene.', consequence:'I landssvikoppgjøret dømmes du for medvirkning til forbrytelse mot menneskeheten.'}
+    ]
+  },
+  donau1:{
+    year:'26. november 1942', scene:'Du er havnearbeider på kai 1 i Oslo klokken 02:00. Du ser hundrevis av jødiske menn, kvinner og barn bli ført om bord på Donau. Norsk politi er overalt. Du vet de ikke kommer tilbake.',
+    options:[
+      {label:'Forsøk å skjule en familie i lagerbygningen', role:'motstander', hist:'Noen havnearbeidere forsøkte desperate tiltak for å hjelpe.', consequence:'En desperat handling i mørket. Noen lyktes. Av 529 deporterte overlevde kun ni — de du hjalp var blant de heldige.'},
+      {label:'Se på uten å handle', role:'nøytral', hist:'De fleste som var til stede forholdt seg passive.', consequence:'De 529 deporteres. Norsk debatt om kollektivt ansvar pågår i tiår etter krigen.'}
+    ]
+  },
+  donau2:{
+    year:'Høsten 1942', scene:'Rykter når deg om at alle norske jøder snart skal "sendes bort". Din eldre jødiske nabo bor alene. Du kan advare henne og skjule henne. Det er forbudt og livsfarlig.',
+    options:[
+      {label:'Advar henne og skjul henne hos deg', role:'motstander', hist:'Mange norske jøder ble reddet av naboer og venner som handlet i tide.', consequence:'En farlig beslutning. Men hun overlever. Etter krigen er hun blant de ca. 1 000 norske jødene som ikke ble deportert.'},
+      {label:'Gjør ingenting — kanskje ryktene er overdrevne', role:'nøytral', hist:'Mange valgte ikke å handle fordi de ikke trodde det ville bli så ille.', consequence:'Din nabo deporteres med Donau. Hun er blant de 509 som ikke overlever Auschwitz.'}
+    ]
+  },
+  london1:{
+    year:'1940–1945', scene:'Du er radiotelegrafist i London. Norske jøder er i ferd med å bli deportert, og eksilregjeringen vurderer om det skal sendes en radioadvarsel direkte til det norske folk. Det kan avsløre sendestedet.',
+    options:[
+      {label:'Send advarselen — folk må få vite', role:'motstander', hist:'NRK i eksil sendte krypterte meldinger til motstandsbevegelsen gjennom hele krigen.', consequence:'Folk hjemme advares. Noen rekker å hjelpe familier i skjul. Radioen er et avgjørende motstandsvåpen.'},
+      {label:'Vent til det er tryggere å sende', role:'nøytral', hist:'Sendingene ble nøye koordinert for å unngå oppdagelse.', consequence:'Forsinkelsen koster noen familier fluktmuligheten. Men radiostasjonen forblir operativ og bidrar gjennom hele krigen.'}
+    ]
+  },
+  london2:{
+    year:'1940', scene:'Du er norsk sjømann. Nortraship ber deg om å stille skipet ditt til de alliertes disposisjon og seile Atlanterhavet under konstant trussel fra tyske ubåter. Risikoen er enorm — 1 av 4 norske sjømenn dør.',
+    options:[
+      {label:'Meld deg til Nortraship og seil', role:'motstander', hist:'Ca. 30 000 norske sjømenn risikerte livet på Atlanterhavet. Over 3 000 omkom.', consequence:'Din innsats bidrar direkte til at allierte forsyninger når Storbritannia. Churchill sier de norske sjømennene er "uvurderlige". Du er en del av krigens store bilde.'},
+      {label:'Bli i havn og avvent situasjonen', role:'nøytral', hist:'Ikke alle norske sjømenn meldte seg frivillig til farlige oppdrag.', consequence:'Du er trygg — for nå. Men hver båt som forblir i havn svekker forsyningslinjene. Kausaliteten er global.'}
+    ]
+  },
+  milorg1:{
+    year:'1942', scene:'En bekjent rekrutterer deg til Milorg — den hemmelige militære motstandsorganisasjonen. Du skal trene og forberede deg til å ta over orden når freden kommer. Oppdagelse betyr Gestapo og trolig henrettelse.',
+    options:[
+      {label:'Bli med i Milorg', role:'motstander', hist:'Milorg vokste fra spredte grupper til 40 000 organiserte menn ved krigens slutt.', consequence:'Fem år med hemmelig trening og venting. 8. mai 1945 trer du frem. Milorg overtar den offentlige ordenen — og freden skjer uten kaos.'},
+      {label:'For farlig — du kan ikke risikere familien', role:'nøytral', hist:'De aller fleste nordmenn var ikke med i Milorg, av forståelige grunner.', consequence:'Familien er trygg. Men Milorg trenger folk, og noen andre tar risikoen. Historien er aldri svart-hvit.'}
+    ]
+  },
+  milorg2:{
+    year:'8. mai 1945', scene:'Det er frigjøringsdag. Tysker soldatene har gitt seg. Folket strømmer ut i gatene. Du har ventet på dette i fem år. Hva gjør Milorg nå?',
+    options:[
+      {label:'Ta over orden og beskytt sivilbefolkningen', role:'motstander', hist:'Milorg overtok kontroll over viktige installasjoner 8. mai og forhindret hevnaksjoner.', consequence:'Overgangen til fred skjer rolig og organisert. Milorg forhindrer lynsjing av NS-folk og sikrer at rettsstaten gjenopprettes. Motstandskampen er fullført.'},
+      {label:'Gi makten tilbake til politiet og sivile myndigheter umiddelbart', role:'nøytral', hist:'Det var faktisk tett koordinering mellom Milorg og sivile myndigheter.', consequence:'Den demokratiske tradisjonen gjenopprettes. Samarbeidet mellom Milorg og politiet sikrer en ryddig frigjøring uten selvtekt.'}
+    ]
+  }
+};
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+const completedChoices = {};
+const visitedCities = new Set();
+let currentCityKey = null;
+let currentChoiceId = null;
+
+function totalChoices() {
+  return Object.values(cities).reduce((s,c) => s + c.events.length, 0);
+}
+
+function updateProgress() {
+  const done = Object.keys(completedChoices).length;
+  const total = totalChoices();
+  document.getElementById('prog-text').textContent = done + ' / ' + total + ' fullført';
+  document.getElementById('prog-fill').style.width = (done/total*100) + '%';
+}
+
+function checkCityDone(ck) {
+  const city = cities[ck];
+  const allDone = city.events.every(e => !!completedChoices[e.cid]);
+  if (allDone && !visitedCities.has(ck)) {
+    visitedCities.add(ck);
+    const pin = document.getElementById('pin-' + ck);
+    if (pin) {
+      pin.classList.add('visited');
+      const dot = pin.querySelector('.pin-dot');
+      if (dot && !dot.querySelector('.ck')) {
+        dot.insertAdjacentHTML('beforeend', '<span class="ck">✓</span>');
+      }
+    }
+  }
+  if (visitedCities.size === Object.keys(cities).length) {
+    setTimeout(showSummary, 700);
+  }
+}
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function showMap() { go('map-screen'); }
+function backToCity() { showCity(currentCityKey); }
+
+function showCity(ck) {
+  currentCityKey = ck;
+  const city = cities[ck];
+  document.getElementById('bc-city').textContent = city.name;
+  document.getElementById('city-eyebrow').textContent = city.eyebrow;
+  document.getElementById('city-eyebrow').style.color = city.color;
+  document.getElementById('city-name').textContent = city.name;
+  document.getElementById('city-intro').textContent = city.intro;
+  document.getElementById('city-intro').style.borderColor = city.color;
+  const bLabels = {kilde:'Primærkilde', valg:'Historisk valg', konsekvens:'Kausalitet', historisk:'Historisk hendelse'};
+  document.getElementById('events-list').innerHTML = city.events.map(e => {
+    const done = !!completedChoices[e.cid];
+    return `<div class="event-card${done?' done':''}" onclick="showChoice('${e.cid}')">
+      <div class="event-card-top">
+        <span class="badge ${e.badge}">${bLabels[e.badge]}</span>
+        ${done ? '<span class="done-tag">✓ Fullført</span>' : ''}
+      </div>
+      <div class="event-year">${e.year}</div>
+      <div class="event-title">${e.title}</div>
+      <div class="event-desc">${e.desc}</div>
+      <div class="event-cta">${done ? '↩ Se valget på nytt' : '→ Ta et historisk valg'}</div>
+    </div>`;
+  }).join('');
+  go('city-screen');
+}
+
+function showChoice(cid) {
+  currentChoiceId = cid;
+  const c = choices[cid];
+  const city = cities[currentCityKey];
+  const ev = city.events.find(e => e.cid === cid);
+  document.getElementById('bc-choice').textContent = ev ? ev.title : '';
+  document.getElementById('scene-year').textContent = c.year;
+  document.getElementById('choice-scene').textContent = c.scene;
+  document.getElementById('consequence-area').innerHTML = '';
+  document.getElementById('choice-options').innerHTML = c.options.map((o,i) =>
+    `<button class="choice-btn" onclick="pickChoice(${i})">
+      <span class="btn-label">${o.label}</span>
+      <span class="btn-hist">Historisk kontekst: ${o.hist}</span>
+    </button>`).join('');
+  go('choice-screen');
+}
+
+function pickChoice(idx) {
+  const c = choices[currentChoiceId];
+  const opt = c.options[idx];
+  const city = cities[currentCityKey];
+  const ev = city.events.find(e => e.cid === currentChoiceId);
+  const roleLabels = {motstander:'Motstandsrollen', kollaboratør:'Kollaboratørrollen', nøytral:'Den nøytrale'};
+  const fag = {
+    motstander:'Fagbegrep: kausalitet (årsak–virkning), historisk empati, primærkilde',
+    kollaboratør:'Fagbegrep: kausalitet, normativ kilde, kollaborasjon, landssvikoppgjøret',
+    nøytral:'Fagbegrep: kausalitet, passivitet som historisk valg, historisk empati'
+  };
+  document.getElementById('consequence-area').innerHTML = `
+    <div class="consequence ${opt.role}">
+      <div class="con-role">${roleLabels[opt.role]}</div>
+      <div class="con-title">${opt.label}</div>
+      <div class="con-text">${opt.consequence}</div>
+      <div class="con-fag">${fag[opt.role]}</div>
+    </div>
+    <div style="text-align:center">
+      <button class="finish-btn" onclick="doneChoice()">Neste →</button>
+    </div>`;
+  document.getElementById('consequence-area').scrollIntoView({behavior:'smooth',block:'nearest'});
+  completedChoices[currentChoiceId] = {role:opt.role, choiceLabel:opt.label, cityKey:currentCityKey, eventTitle:ev?ev.title:currentChoiceId};
+  updateProgress();
+}
+
+function doneChoice() {
+  checkCityDone(currentCityKey);
+  backToCity();
+}
+
+// ══════════════════════════════════════════
+//  SUMMARY
+// ══════════════════════════════════════════
+function showSummary() {
+  const counts = {motstander:0, kollaboratør:0, nøytral:0};
+  const log = {};
+  Object.values(completedChoices).forEach(e => {
+    counts[e.role]++;
+    if (!log[e.cityKey]) log[e.cityKey] = [];
+    log[e.cityKey].push(e);
+  });
+  const total = counts.motstander + counts.kollaboratør + counts.nøytral;
+  const max = Math.max(...Object.values(counts));
+  let dom = 'blandet';
+  if (counts.motstander === max && counts.motstander >= total * 0.45) dom = 'motstander';
+  else if (counts.kollaboratør === max && counts.kollaboratør >= total * 0.35) dom = 'kollaboratør';
+  else if (counts.nøytral === max && counts.nøytral >= total * 0.45) dom = 'nøytral';
+
+  const ids = {
+    motstander:{icon:'✊',title:'Motstandsmannen / -kvinnen',desc:'Gjennom okkupasjonen valgte du konsekvent å stå imot. Du distribuerte illegale aviser, hjalp folk på flukt og nektet å bøye deg. Det var livsfarlig — men du bidro aktivt til at Norge ikke ga opp. Historien husker dem som handlet.'},
+    kollaboratør:{icon:'⚖',title:'Kollaboratøren',desc:'Du valgte gjentatte ganger å samarbeide med eller ikke motsi okkupasjonsmakten. Kanskje av frykt, kanskje av overbevisning. Etter krigen risikerte folk som deg rettsoppgjør for landssvik. Historisk empati krever at vi forstår presset — men konsekvensene var reelle.'},
+    nøytral:{icon:'👁',title:'Den nøytrale tilskueren',desc:'Du valgte det trygge og pragmatiske de fleste gangene. Som de fleste nordmenn forsøkte du å overleve uten å ta side. Men historien viser at nøytralitet aldri er ekte nøytralitet — passivitet hadde konsekvenser for andre, selv om det beskyttet deg selv.'},
+    blandet:{icon:'🔀',title:'Den sammensatte — som de fleste',desc:'Valgene dine var spredt mellom motstand, tilpasning og passivitet — akkurat som de fleste nordmenn faktisk var. Okkupasjonen besto av tusenvis av hverdagsvalg under press og frykt. Historien er sjelden svart-hvit, og du er et godt bilde på det.'}
+  };
+  const id = ids[dom];
+  document.getElementById('id-card-wrap').innerHTML = `<div class="id-card ${dom}"><div class="id-icon">${id.icon}</div><div class="id-title">${id.title}</div><div class="id-desc">${id.desc}</div></div>`;
+
+  const pct = r => total > 0 ? Math.round(counts[r]/total*100) : 0;
+  document.getElementById('role-bars').innerHTML = [
+    {r:'motstander',label:'Motstand'},
+    {r:'nøytral',label:'Nøytral'},
+    {r:'kollaboratør',label:'Kollaborasjon'}
+  ].map(({r,label}) => `<div class="role-row">
+    <span class="role-name">${label}</span>
+    <div class="role-track"><div class="role-bar ${r}" style="width:${pct(r)}%">${pct(r)>12?pct(r)+'%':''}</div></div>
+    <span class="role-count">${counts[r]}</span>
+  </div>`).join('');
+
+  document.getElementById('log-wrap').innerHTML = Object.keys(cities).map(ck => {
+    const entries = log[ck];
+    if (!entries||!entries.length) return '';
+    const rLabels = {motstander:'Motstand',kollaboratør:'Kollaborasjon',nøytral:'Nøytral'};
+    return `<div class="log-city"><div class="log-city-name">${cities[ck].name}</div>${entries.map(e => `
+      <div class="log-entry">
+        <div class="log-dot ${e.role}"></div>
+        <div class="log-content">
+          <div class="log-event">${e.eventTitle}</div>
+          <div class="log-choice">"${e.choiceLabel}"</div>
+          <div class="log-tag ${e.role}">${rLabels[e.role]}</div>
+        </div>
+      </div>`).join('')}</div>`;
+  }).join('');
+
+  const refs = {
+    motstander:`<p>Du tok flest motstandsvalg. Men legg merke til at dette var livsfarlig — historien er full av mennesker som ønsket å gjøre motstand, men som hadde familier å beskytte. Historisk empati betyr å forstå begge sidene.</p><p>Fagbegrep du har møtt gjennom spillet: <strong>kausalitet</strong> (hvert valg fikk konsekvenser), <strong>historisk empati</strong> (å forstå aktørene fra deres perspektiv), <strong>primærkilde vs. beretning</strong>, og <strong>levning</strong>.</p>`,
+    kollaboratør:`<p>Du samarbeidet med okkupasjonsmakten i de fleste situasjoner. Ca. 92 000 nordmenn havnet i landssvikoppgjøret. Mange hadde ikke gjort noe dramatisk — men summen av små valg ble et mønster. Historisk empati krever at vi forstår presset uten å fraskrive dem ansvar.</p><p>Fagbegrep: <strong>kausalitet</strong>, <strong>normativ kilde</strong>, <strong>landssvikoppgjøret</strong>, <strong>historisk empati</strong>.</p>`,
+    nøytral:`<p>Du valgte det pragmatiske og trygge — slik majoriteten av nordmenn faktisk gjorde. Men nøytralitet er sjelden ekte nøytralitet: når du ikke hjelper en nabo som deporteres, er det også et valg med konsekvenser. Historikere kaller dette passivt medansvar.</p><p>Fagbegrep: <strong>kausalitet</strong>, <strong>historisk empati</strong>, skillet mellom <strong>deskriptive og normative kilder</strong>.</p>`,
+    blandet:`<p>Valgene dine gjenspeiler det komplekse bildet de fleste nordmenn faktisk levde i. Ingen var helter eller skurker hele veien — okkupasjonen besto av tusenvis av hverdagsvalg under press, frykt og usikkerhet. Det er nettopp dette som gjør historien interessant å studere.</p><p>Fagbegrep: <strong>kausalitet</strong>, <strong>historisk empati</strong>, <strong>kildekritikk</strong>, og spørsmålet: kan vi dømme historiske aktører ut fra vår tids verdier?</p>`
+  };
+  document.getElementById('reflection').innerHTML = refs[dom];
+  go('summary-screen');
+}
+
+function restartGame() {
+  Object.keys(completedChoices).forEach(k => delete completedChoices[k]);
+  visitedCities.clear();
+  document.querySelectorAll('.map-pin').forEach(p => {
+    p.classList.remove('visited');
+    const ck = p.querySelector('.ck');
+    if (ck) ck.remove();
+  });
+  updateProgress();
+  showMap();
+}
+</script>
+</body>
+</html>
