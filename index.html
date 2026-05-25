@@ -192,6 +192,30 @@
     .restart-btn{display:inline-flex;margin:1.5rem auto;padding:0.95rem 2rem;font-family:'Source Sans 3',sans-serif;font-size:0.95rem;font-weight:700;background:var(--text);color:var(--bg);border:none;border-radius:999px;cursor:pointer;transition:opacity .18s ease;}
     .restart-btn:hover{opacity:.85;}
 
+    /* ── INTRO SCREEN ── */
+    #intro-screen{padding:2rem 1rem;}
+    .intro-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 16px 48px rgba(15,23,42,0.10);}
+    .intro-top{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 60%,#0f4a3a 100%);padding:2.5rem 2rem 2rem;text-align:center;}
+    .intro-flag{font-size:2.5rem;margin-bottom:0.75rem;}
+    .intro-top h2{font-family:'Playfair Display',serif;font-size:1.75rem;font-weight:700;color:#fff;line-height:1.15;margin-bottom:0.4rem;}
+    .intro-top p{font-size:0.95rem;color:rgba(255,255,255,0.65);letter-spacing:.06em;}
+    .intro-body{padding:1.75rem 1.75rem 1.5rem;}
+    .intro-desc{font-size:1rem;color:var(--text2);line-height:1.8;margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border);}
+    .intro-steps{display:flex;flex-direction:column;gap:0.875rem;margin-bottom:1.75rem;}
+    .intro-step{display:flex;align-items:flex-start;gap:0.875rem;}
+    .step-num{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-size:0.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+    .step-text{font-size:0.95rem;color:var(--text2);line-height:1.65;}
+    .step-text strong{color:var(--text);}
+    .intro-roles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.625rem;margin-bottom:1.75rem;}
+    .role-chip{padding:0.625rem 0.5rem;border-radius:10px;text-align:center;font-size:0.8rem;font-weight:600;line-height:1.4;}
+    .role-chip.m{background:var(--green-light);color:var(--green);}
+    .role-chip.n{background:var(--amber-light);color:var(--amber);}
+    .role-chip.k{background:var(--red-light);color:var(--red);}
+    .intro-note{font-size:0.85rem;color:var(--text3);line-height:1.7;padding:0.875rem 1rem;background:var(--panel);border-radius:10px;border-left:3px solid var(--border2);margin-bottom:1.75rem;}
+    .start-btn{width:100%;padding:1rem;background:var(--accent);color:#fff;border:none;border-radius:14px;font-family:'Source Sans 3',sans-serif;font-size:1.05rem;font-weight:700;cursor:pointer;transition:background .18s,transform .15s;letter-spacing:.02em;}
+    .start-btn:hover{background:#0d6b62;transform:translateY(-2px);}
+    .start-btn:active{transform:none;}
+
     .footer{padding:1rem 1.5rem;border-top:1px solid var(--border);background:var(--bg2);font-size:11px;color:var(--text3);text-align:center;line-height:1.6;}
   </style>
 </head>
@@ -213,8 +237,49 @@
     </div>
   </div>
 
+  <!-- ══ INTRO SCREEN ══ -->
+  <div id="intro-screen" class="screen active">
+    <div style="padding:2rem 1rem;">
+      <div class="intro-card">
+        <div class="intro-top">
+          <div class="intro-flag">🇳🇴</div>
+          <h2>Motstanderen</h2>
+          <p>Norge under andre verdenskrig · 1940–1945</p>
+        </div>
+        <div class="intro-body">
+          <p class="intro-desc">Dette er et historisk rollespill om å være norsk innbygger under den tyske okkupasjonen. Okkupasjonen varte i fem år — og besto av tusenvis av hverdagslige valg under press, frykt og usikkerhet. Nå er det din tur til å ta dem.</p>
+          <div class="intro-steps">
+            <div class="intro-step">
+              <div class="step-num">1</div>
+              <div class="step-text"><strong>Velg et sted på kartet.</strong> Hvert sted representerer en historisk hendelse eller situasjon fra okkupasjonen — fra Oscarsborg i sør til Kirkenes i nord.</div>
+            </div>
+            <div class="intro-step">
+              <div class="step-num">2</div>
+              <div class="step-text"><strong>Les scenariet og ta et valg.</strong> Du stilles overfor ekte dilemmaer som norske sivile og soldater sto overfor. Det finnes ikke alltid et åpenbart riktig svar.</div>
+            </div>
+            <div class="intro-step">
+              <div class="step-num">3</div>
+              <div class="step-text"><strong>Se konsekvensen.</strong> Hvert valg viser hva som faktisk skjedde historisk — og hvilken rolle du tok.</div>
+            </div>
+            <div class="intro-step">
+              <div class="step-num">4</div>
+              <div class="step-text"><strong>Fullfør alle stedene.</strong> Når du er ferdig, får du en oppsummering som viser hvem du var under okkupasjonen.</div>
+            </div>
+          </div>
+          <div class="intro-roles">
+            <div class="role-chip m">✊ Motstand</div>
+            <div class="role-chip n">👁 Nøytral</div>
+            <div class="role-chip k">⚖ Kollaborasjon</div>
+          </div>
+          <p class="intro-note">📚 <strong>Formål:</strong> Spillet er laget for å gi deg historisk empati — evnen til å forstå fortiden fra innsiden. Alle hendelser, valg og konsekvenser er basert på faktiske historiske kilder.</p>
+          <button class="start-btn" onclick="startGame()">Start spillet →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ══ MAP SCREEN ══ -->
-  <div id="map-screen" class="screen active">
+  <div id="map-screen" class="screen">
     <div style="padding:1rem 1rem 0.75rem">
       <div class="map-intro">Trykk på et sted for å utforske historiske hendelser og ta valg som virkelige nordmenn sto overfor. Grønn hake = alle valg fullført.</div>
     </div>
@@ -652,6 +717,7 @@ function go(id) {
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
+function startGame() { go('map-screen'); }
 function showMap() { go('map-screen'); }
 function backToCity() { showCity(currentCityKey); }
 
